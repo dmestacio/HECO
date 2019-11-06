@@ -2,7 +2,7 @@
 main.py is the file representing the dashboard application
 
 @author     thique-atto/Daphne
-@version    1.0
+@version    2.0
 @since      11/3/2019
 """
 
@@ -10,6 +10,7 @@ main.py is the file representing the dashboard application
 import pandas as pd 
 import datetime
 from calendar import monthrange
+import plotly.graph_objects as go
 
 # declaration of constants
 LIST_OF_ISLANDS = ['Oahu', 'Hawaii Island', 'Maui', 'Sample']
@@ -17,7 +18,7 @@ LIST_OF_OAHU_SITES = ['Dole Plantation','Ko\'olau Center', 'Kapolei Commons', 'H
 LIST_OF_HAWAII_ISLAND_SITES = ['HELCO Hilo', 'HELCO Kona', 'Waimea KTA', 'The Shops at Mauna Lani']
 LIST_OF_MAUI_SITES = ['MECO Kahului', 'Kaunakakai']
 LIST_OF_SAMPLE_SITES = ['SiteA', 'SiteB']
-LIST_OF_DURATIONS = ['Yearly', 'Monthly', 'Weekly', 'Daily', 'Hourly']
+LIST_OF_DURATIONS = ['Yearly', 'Monthly', 'Weekly', 'Daily', 'Hourly', 'Sample']
 
 
 class Site:
@@ -61,8 +62,10 @@ def main():
     print('\nGathering Transactions...')
     print(site.transactions)
 
-    graphDuration = chooseDurationForGraph()
-    print(graphDuration)
+    #graphDuration = chooseDurationForGraph()
+    #print(graphDuration)
+    #createPowerTimeGraph(site.powerDataFrame, graphDuration)
+    createPowerTimeGraph(site.powerDataFrame)
 
 def chooseSite():
 
@@ -92,7 +95,7 @@ def chooseSite():
 
     return siteName
 
-
+"""
 def chooseDurationForGraph():
     
     #Choose duration
@@ -103,27 +106,116 @@ def chooseDurationForGraph():
 
     if (durationInput == 0): #yearly
         year = int(input("Year: "))
-        startDate = datetime.date(year,1,1)
-        endDate = datetime.date(year,12,31)
+        start = datetime.datetime(year, 1, 1, 0, 0, 0)
+        end = datetime.datetime(year, 12, 31, 23, 59, 0)
     elif (durationInput == 1): #monthly
         year = int(input("Year: "))
         month = int(input("Month: "))
-        startDate = datetime.date(year, month, 1)
-        endDate = datetime.date(year, month, monthrange(year, month)[1])
+        start = datetime.datetime(year, month, 1, 0, 0, 0)
+        end = datetime.datetime(year, month, monthrange(year, month)[1], 23,59, 0)
     elif (durationInput == 2): #weekly
         year = int(input("Starting Year: "))
         month = int(input("Starting Month: "))
         day = int(input("Starting Day: "))
-        startDate = datetime.date(year, month, day)
-        endDate = startDate + datetime.timedelta(days=6)
+        start = datetime.datetime(year, month, day, 0, 0, 0)
+        end = start + datetime.timedelta(days=6, hours=23, minutes=59)
+    elif (durationInput == 3): #daily
+        year = int(input("Year: "))
+        month = int(input("Month: "))
+        day = int(input("Day: "))
+        start = datetime.datetime(year, month, day, 0, 0, 0)
+        end = datetime.datetime(year, month, day, 23, 59, 0)
+    elif (durationInput == 4): #hourly
+        year = int(input("Year: "))
+        month = int(input("Month: "))
+        day = int(input("Day: "))
+        hour = int(input("Hour: "))
+        start = datetime.datetime(year, month, day, hour, 0, 0)
+        end = start + datetime.timedelta(minutes=59)
+    else: #testing
+        start = datetime.datetime(2018, 9, 1, 11, 7, 0)
+        end = datetime.datetime(2018, 9, 1, 11, 40, 0)
     
-    duration = [startDate,endDate]
+    duration = [start,end]
     return duration
 
-def createPowerTimeGraph(site):
-    # adding values to an array 
-    #site.powerData = site.powerDataFrame.values.tolist()
-    return
+def createPowerTimeGraph(data, duration):
+    #adding values to an array 
+    dataValues = data.values.tolist()
+    x_values = []
+    y_values = []
+
+    for time, power in dataValues:
+        if (time >= duration[0] and time < duration[1]):
+            x_values.append(time)
+            y_values.append(power)
+
+    fig = go.Figure(data=go.Scatter(x=x_values, y=y_values))
+    fig.show()
+"""
+# source code: https://plot.ly/python/range-slider/
+def createPowerTimeGraph(data):
+
+    # Create figure
+    fig = go.Figure()
+
+    fig.add_trace(
+        go.Scatter(x=list(data['Start Date and Time']), y =list(data['Power (kW)']))
+    )
+
+    # Title of graph
+    fig.update_layout(
+        title_text = 'Power vs. Time'
+    )
+
+    # Add range selector and slider
+    fig. update_layout(
+        xaxis = go.layout.XAxis(
+            rangeselector = dict(
+                buttons = list([
+                    dict(count = 1,
+                         label = 'YTD',
+                         step = 'year',
+                         stepmode = 'todate'),
+                    dict(count = 1,
+                         label = 'Yearly',
+                         step = 'year',
+                         stepmode = 'backward'),
+                    dict(count = 6,
+                         label = '6 Months',
+                         step = 'month',
+                         stepmode = 'backward'),
+                    dict(count = 1,
+                         label = 'Monthly',
+                         step = 'month',
+                         stepmode = 'backward'),
+                    dict(count = 7,
+                         label = 'Weekly',
+                         step = 'day',
+                         stepmode = 'backward'),
+                    dict(count = 1,
+                         label = 'Daily',
+                         step = 'day',
+                         stepmode = 'backward'),
+                    dict(count = 1,
+                         label = 'Hourly',
+                         step = 'hour',
+                         stepmode = 'backward'),
+                    dict(count = 30,
+                         label = '30 Minutes',
+                         step = 'minute',
+                         stepmode = 'backward'),
+                    dict(step = 'all')
+                ])
+            ),
+            rangeslider = dict(
+                visible = True
+            ),
+            type = 'date'
+        )
+    )
+
+    fig.show()
 
 def createGraph():
     return
