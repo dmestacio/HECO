@@ -1,7 +1,7 @@
 """
 main.py is the file representing the dashboard application
 
-@author     Daphne Marie Tapia
+@author     thique-atto/Daphne
 @version    1.0
 @since      11/3/2019
 """
