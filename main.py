@@ -9,13 +9,15 @@ main.py is the file representing the dashboard application
 # import environments to be used
 import pandas as pd 
 import datetime
+from calendar import monthrange
 
-# declaration of constant
+# declaration of constants
 LIST_OF_ISLANDS = ['Oahu', 'Hawaii Island', 'Maui', 'Sample']
 LIST_OF_OAHU_SITES = ['Dole Plantation','Ko\'olau Center', 'Kapolei Commons', 'Hawai\'i Kai 7-Eleven', 'Ward 1', 'Ward 2', 'Wai\'anae Mall', '801 Dilingham'] 
 LIST_OF_HAWAII_ISLAND_SITES = ['HELCO Hilo', 'HELCO Kona', 'Waimea KTA', 'The Shops at Mauna Lani']
 LIST_OF_MAUI_SITES = ['MECO Kahului', 'Kaunakakai']
 LIST_OF_SAMPLE_SITES = ['SiteA', 'SiteB']
+LIST_OF_DURATIONS = ['Yearly', 'Monthly', 'Weekly', 'Daily', 'Hourly']
 
 
 class Site:
@@ -27,10 +29,7 @@ class Site:
     
     def gatherPowerData(self):
         # open file containing power data for site
-        self.dataFrame = pd.read_excel(self.siteName + ' power.xlsx', sheet_name='Power Data')
-
-        # adding values to an array 
-        self.powerData = self.dataFrame.values.tolist()
+        self.powerDataFrame = pd.read_excel(self.siteName + ' power.xlsx', sheet_name='Power Data')
 
     def gatherTransactions(self):
         # open csv file containing transactions
@@ -45,6 +44,27 @@ class Site:
             self.transactions = allData[allData['Charge Station Name'] == self.siteName]
 
 def main():
+
+    # For testing purposes:
+    site = Site('SiteA')
+    #site = Site(chooseSite())
+    print('')
+    site.printSiteName()
+
+    # Gather power data from site
+    site.gatherPowerData()
+    print('Gathering Power Data...')
+    print(site.powerDataFrame)
+
+    # Gather transactions from site
+    site.gatherTransactions()
+    print('\nGathering Transactions...')
+    print(site.transactions)
+
+    graphDuration = chooseDurationForGraph()
+    print(graphDuration)
+
+def chooseSite():
 
     # Choose which site to analyze data from
     print('Choose an island from list below:')
@@ -70,11 +90,39 @@ def main():
             print('[' + str(LIST_OF_SAMPLE_SITES.index(site)) + '] ' + site)
         siteName = LIST_OF_SAMPLE_SITES[int(input("Site Choice (index): "))]
 
-    # Gather Power Data Site
-    site = Site(siteName)
-    site.printSiteName()
+    return siteName
 
-def createPowerTimeGraph():
+
+def chooseDurationForGraph():
+    
+    #Choose duration
+    print('Duration: ')
+    for duration in LIST_OF_DURATIONS:
+        print('[' + str(LIST_OF_DURATIONS.index(duration)) + '] ' + duration)
+    durationInput = int(input("Island Choice (index): "))
+
+    if (durationInput == 0): #yearly
+        year = int(input("Year: "))
+        startDate = datetime.date(year,1,1)
+        endDate = datetime.date(year,12,31)
+    elif (durationInput == 1): #monthly
+        year = int(input("Year: "))
+        month = int(input("Month: "))
+        startDate = datetime.date(year, month, 1)
+        endDate = datetime.date(year, month, monthrange(year, month)[1])
+    elif (durationInput == 2): #weekly
+        year = int(input("Starting Year: "))
+        month = int(input("Starting Month: "))
+        day = int(input("Starting Day: "))
+        startDate = datetime.date(year, month, day)
+        endDate = startDate + datetime.timedelta(days=6)
+    
+    duration = [startDate,endDate]
+    return duration
+
+def createPowerTimeGraph(site):
+    # adding values to an array 
+    #site.powerData = site.powerDataFrame.values.tolist()
     return
 
 def createGraph():
